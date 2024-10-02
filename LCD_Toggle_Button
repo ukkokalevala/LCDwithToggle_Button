@@ -1,0 +1,45 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Set the LCD I2C address (commonly 0x27 or 0x3F)
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Adjust the address if necessary
+
+const int buttonPin = 8;  // Pin connected to the push button
+bool backlightState = true; // Track the backlight state (on/off)
+bool lastButtonState = HIGH; // Store the last button state
+unsigned long lastDebounceTime = 0;  // For debouncing
+unsigned long debounceDelay = 50;    // Debounce delay in milliseconds
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);  // Set button pin with internal pull-up resistor
+  
+  lcd.begin(16, 02);              // Initialize the LCD
+  lcd.backlight();           // Turn on the backlight initially
+  lcd.print("Backlight Test");  // Test message
+}
+
+void loop() {
+  // Read the state of the push button
+  int buttonState = digitalRead(buttonPin);
+
+  // Check for state change (debounce logic)
+  if (buttonState != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+
+  // Only toggle the backlight if the button is pressed and the debounce time has passed
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (buttonState == LOW) {  // Button pressed (LOW due to pull-up)
+      // Toggle the backlight state
+      backlightState = !backlightState;
+      
+      if (backlightState) {
+        lcd.backlight();    // Turn on the backlight
+      } else {
+        lcd.noBacklight();  // Turn off the backlight
+      }
+    }
+  }
+
+  lastButtonState = buttonState;  // Update the last button state
+}
